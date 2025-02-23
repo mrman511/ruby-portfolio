@@ -46,4 +46,11 @@ class ApplicationController < ActionController::API
       render json: { message: "Please log in" }, status: :unauthorized
     end
   end
+
+  def is_admin
+    if !current_user or !current_user.has_role? :admin
+      render json: { message: "Permission denied" }, status: :unauthorized
+      nil
+    end
+  end
 end

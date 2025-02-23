@@ -1,0 +1,244 @@
+require "test_helper"
+
+class ProjectsControllerTest < ActionDispatch::IntegrationTest
+  def build_jwt(user_id)
+    payload = {
+      user_id: user_id,
+      exp: Time.now.to_i + (7*24*60*60)
+    }
+    JWT.encode(payload, ENV["SECRET_KEY"] || "test key")
+  end
+
+  setup do
+    @base_project = Project.create({
+      title: "Pillpopper",
+      description: "Lighthouse labs bootcamp final project",
+      github_url: "https://github.com",
+      live_url: "pillpopper.ca",
+      role: "Co-creator",
+      image: File.open(Rails.root.join("test", "fixtures", "files", "default-avatar.jpg"))
+    })
+    @valid_project_params = {
+      title: "Pilper",
+      description: "Lighthouse labs bootcamp final project we could have done better",
+      github_url: "https://github.com/mrman511",
+      live_url: "pillpopper.com",
+      role: "Creator"
+    }
+    @user = User.create({
+      first_name: "Ringfinger",
+      last_name: "leonhard",
+      email: "leonhard@rosarias-fingers.com",
+      password: "R1nGf|n&3r",
+      avatar: file_fixture_upload("test/fixtures/files/default-avatar.jpg", "image/jpg")
+    })
+    @token = build_jwt(@user.id)
+  end
+
+  test "#index returns response :ok" do
+    get projects_url
+    assert_response :ok
+  end
+
+  test "#index returns an array of projects that can be fetched from the database" do
+    get projects_url
+    body = JSON.parse(response.body)
+    assert_nothing_raised {
+      body.each do |project|
+        Project.find(project["id"])
+      end
+    }
+  end
+
+  test "#index should return an array when a single project exists" do
+    Project.destroy_all
+    Project.create(@valid_project_params)
+    get projects_url
+    body = JSON.parse(response.body)
+    assert_kind_of(Array, body)
+    assert_equal 1, body.length
+  end
+
+  test "#index should return an empty array when no projects exist" do
+    Project.destroy_all
+    get projects_url
+    body = JSON.parse(response.body)
+    assert_kind_of(Array, body)
+    assert_equal 0, body.length
+  end
+
+  # ########
+  # # SHOW #
+  # ########
+
+  test "#show returns response :ok" do
+    get project_url(@base_project.id)
+    assert_response :ok
+  end
+
+  test "#show returns a project that can be fetched from the database" do
+    get project_url(@base_project.id)
+    body = JSON.parse(response.body)
+    assert_nothing_raised {
+      Project.find(body["id"])
+    }
+  end
+
+  test "#show returns response :not_found when given an invalid project id" do
+    get project_url(0)
+    assert_response :not_found
+  end
+
+  test "#show should return error ActionController::UrlGenerationError know yet with no project id" do
+    assert_raises(ActionController::UrlGenerationError) { show project_url }
+  end
+
+  # ##########
+  # # CREATE #
+  # ##########
+
+  test "#create should return response :unauthorized when a user with not authorization headers provided" do
+    post projects_url, params: @valid_project_params
+    body = JSON.parse(response.body)
+    assert_equal "Please log in", body["message"]
+    assert_response :unauthorized
+  end
+
+  test "#create should return response :unauthorized with non admin user provided" do
+    post projects_url, params: @valid_project_params, headers: { "Authorization": "Bearer #{ @token }" }
+    body = JSON.parse(response.body)
+    assert_equal "Permission denied", body["message"]
+    assert_response :unauthorized
+  end
+
+  test "#create should return response :ok with admin user provided" do
+    @user.add_role :admin
+    post projects_url, params: @valid_project_params, headers: { "Authorization": "Bearer #{ @token }" }
+    assert_response :accepted
+  end
+
+  test "#create should return response :bad_request with no params provided" do
+    @user.add_role :admin
+    post projects_url, headers: { "Authorization": "Bearer #{ @token }" }
+    assert_response :bad_request
+  end
+
+  test "#create should return a project that can be fetched from the database" do
+    @user.add_role :admin
+    post projects_url, params: @valid_project_params, headers: { "Authorization": "Bearer #{ @token }" }
+    body = JSON.parse(response.body)
+    assert_nothing_raised { Project.find(body["id"]) }
+  end
+
+  test "#create should return a project that matches the provided project params" do
+    @user.add_role :admin
+    post projects_url, params: @valid_project_params, headers: { "Authorization": "Bearer #{ @token }" }
+    body = JSON.parse(response.body)
+    @valid_project_params.each do |key, value|
+      assert_equal value, body["#{ key}"]
+    end
+  end
+
+  # ##########
+  # # UPDATE #
+  # ##########
+
+  test "#update returns response :unauthorized with no Authoriaztion headers present" do
+    patch project_url(@base_project.id), params: @valid_project_params
+    body = JSON.parse(response.body)
+    assert_equal "Please log in", body["message"]
+    assert_response :unauthorized
+  end
+
+  test "#update should return response :unauthorized with non admin user provided" do
+    patch project_url(@base_project.id), params: @valid_project_params, headers: { "Authorization": "Bearer #{ @token }" }
+    body = JSON.parse(response.body)
+    assert_equal "Permission denied", body["message"]
+    assert_response :unauthorized
+  end
+
+  test "#update should return response :accepted with admin user provided" do
+    @user.add_role :admin
+    patch project_url(@base_project.id), params: @valid_project_params, headers: { "Authorization": "Bearer #{ @token }" }
+    assert_response :accepted
+  end
+
+  test "#update should return response :bad_request with no params provided" do
+    @user.add_role :admin
+    patch project_url(@base_project.id), headers: { "Authorization": "Bearer #{ @token }" }
+    assert_response :bad_request
+  end
+
+  test "#update should return response :bad_request with only invalid params provided" do
+    @user.add_role :admin
+    patch project_url(@base_project.id), params: { length: 2589 }, headers: { "Authorization": "Bearer #{ @token }" }
+    assert_response :bad_request
+  end
+
+  test "#update should return a project that matches the id of the project requested for update" do
+    @user.add_role :admin
+    patch project_url(@base_project.id), params: @valid_project_params, headers: { "Authorization": "Bearer #{ @token }" }
+    body = JSON.parse(response.body)
+    assert_equal @base_project.id, @user.id
+  end
+
+  test "#update should update the requested project in the database" do
+    @user.add_role :admin
+    patch project_url(@base_project.id), params: @valid_project_params, headers: { "Authorization": "Bearer #{ @token }" }
+    body = JSON.parse(response.body)
+    fetched_project = Project.find(body["id"])
+    @valid_project_params.each do |key, value|
+      assert_equal value, fetched_project[:"#{ key}"]
+    end
+  end
+
+  # ###########
+  # # DESTROY #
+  # ###########
+
+  test "#destroy returns response :unauthorized with no Authoriaztion headers present" do
+    delete project_url(@base_project.id)
+    body = JSON.parse(response.body)
+    assert_equal "Please log in", body["message"]
+    assert_response :unauthorized
+  end
+
+  test "#destroy should return response :unauthorized with non admin user provided" do
+    delete project_url(@base_project.id), headers: { "Authorization": "Bearer #{ @token }" }
+    body = JSON.parse(response.body)
+    assert_equal "Permission denied", body["message"]
+    assert_response :unauthorized
+  end
+
+  test "#destroy should return response :ok with admin user provided" do
+    @user.add_role :admin
+    delete project_url(@base_project.id), headers: { "Authorization": "Bearer #{ @token }" }
+    assert_response :ok
+  end
+
+  test "#destroy should remove a project from the database" do
+    @user.add_role :admin
+    assert_difference("Project.count", -1) {
+      delete project_url(@base_project.id), headers: { "Authorization": "Bearer #{ @token }" }
+    }
+  end
+
+  test "#destroy should removes specified project from the database" do
+    @user.add_role :admin
+    id = @base_project.id
+    delete project_url(@base_project.id), headers: { "Authorization": "Bearer #{ @token }" }
+    assert_raises(ActiveRecord::RecordNotFound) {
+      Project.find(id)
+    }
+  end
+
+  test "#destroy should return response :not_found with invalid project" do
+    @user.add_role :admin
+    delete project_url(0), headers: { "Authorization": "Bearer #{ @token }" }
+    assert_response :not_found
+  end
+
+  test "#destroy should return error ActionController::UrlGenerationError with no project id" do
+    assert_raises(ActionController::UrlGenerationError) { project_url }
+  end
+end
