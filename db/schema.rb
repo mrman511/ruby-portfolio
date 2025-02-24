@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_02_23_234024) do
+ActiveRecord::Schema[8.0].define(version: 2025_02_24_031126) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -43,6 +43,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_23_234024) do
     t.string "name"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "language_id"
+    t.index ["language_id"], name: "index_frameworks_on_language_id"
   end
 
   create_table "languages", force: :cascade do |t|
@@ -91,4 +93,5 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_23_234024) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "frameworks", "languages"
 end
