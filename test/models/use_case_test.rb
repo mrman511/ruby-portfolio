@@ -2,6 +2,12 @@ require "test_helper"
 
 class UseCaseTest < ActiveSupport::TestCase
   setup do
+    @language = Language.create!({ name: "Ruby" })
+    @framework = Framework.create!(
+      name: "ruby on rails",
+      language: @language,
+      icon: File.open(Rails.root.join("test", "fixtures", "files", "default-avatar.jpg"))
+    )
     @valid_use_case_params = {
       name: "server",
       icon: File.open(Rails.root.join("test", "fixtures", "files", "default-avatar.jpg"))
@@ -53,5 +59,14 @@ class UseCaseTest < ActiveSupport::TestCase
     created_use_case = UseCase.create!(@valid_use_case_params)
     created_use_case.icon.purge
     assert_not created_use_case.icon.attached?
+  end
+
+  test "#destroy removes associated FrameworkUsesCases from the database" do
+    created_use_case = UseCase.create!(@valid_use_case_params)
+    @framework.add_use_case(created_use_case.id)
+    count = created_use_case.frameworks.count
+    assert_difference "FrameworkUseCase.count", -count do
+      created_use_case.destroy
+    end
   end
 end

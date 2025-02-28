@@ -8,6 +8,7 @@ class FrameworkTest < ActiveSupport::TestCase
       language: @language,
       icon: File.open(Rails.root.join("test", "fixtures", "files", "default-avatar.jpg"))
     }
+    @use_case = UseCase.create!(name: "Server")
   end
 
   test "#create adds a framework to the data base with valid params" do
@@ -57,6 +58,20 @@ class FrameworkTest < ActiveSupport::TestCase
     assert_not created_framework.icon.attached?
   end
 
+  test "#add_use_case creates a FrameworkUseCase with a valid UseCase id" do
+    created_framework = Framework.create!(@valid_framework_params)
+    assert_difference("FrameworkUseCase.count") {
+      created_framework.add_use_case(@use_case.id)
+    }
+  end
+
+  test "#add_use_case adds a UseCase to the framework with a valid UseCase id" do
+    created_framework = Framework.create!(@valid_framework_params)
+    assert_difference("created_framework.use_cases.count") {
+      created_framework.add_use_case(@use_case.id)
+    }
+  end
+
   test "#destroy does not destroy the associated Language" do
     created_framework = Framework.create!(@valid_framework_params)
     language_id = @valid_framework_params[:language].id
@@ -64,5 +79,14 @@ class FrameworkTest < ActiveSupport::TestCase
     assert_nothing_raised {
       Language.find(language_id)
     }
+  end
+
+  test "#destroy removes all associated FrameworkUsesCases from the database" do
+    created_framework = Framework.create!(@valid_framework_params)
+    created_framework.add_use_case(@use_case.id)
+    count = created_framework.use_cases.count
+    assert_difference "FrameworkUseCase.count", -count do
+      created_framework.destroy
+    end
   end
 end
