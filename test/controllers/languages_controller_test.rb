@@ -85,51 +85,58 @@ class LanguagesControllerTest < ActionDispatch::IntegrationTest
     assert_raises(ActionController::UrlGenerationError) { show language_url }
   end
 
-  # # ##########
-  # # # CREATE #
-  # # ##########
+  # ##########
+  # # CREATE #
+  # ##########
 
-  # test "#create should return response :unauthorized when a user with not authorization headers provided" do
-  #   post languages_url, params: @valid_language_params
-  #   body = JSON.parse(response.body)
-  #   assert_equal "Please log in", body["message"]
-  #   assert_response :unauthorized
-  # end
+  test "#create should return response :unauthorized when a user with not authorization headers provided" do
+    post languages_url, params: @valid_language_params
+    body = JSON.parse(response.body)
+    assert_equal "Please log in", body["message"]
+    assert_response :unauthorized
+  end
 
-  # test "#create should return response :unauthorized with non admin user provided" do
-  #   post languages_url, params: @valid_language_params, headers: { "Authorization": "Bearer #{ @token }" }
-  #   body = JSON.parse(response.body)
-  #   assert_equal "Permission denied", body["message"]
-  #   assert_response :unauthorized
-  # end
+  test "#create should return response :unauthorized with non admin user provided" do
+    post languages_url, params: @valid_language_params, headers: { "Authorization": "Bearer #{ @token }" }
+    body = JSON.parse(response.body)
+    assert_equal "Permission denied", body["message"]
+    assert_response :unauthorized
+  end
 
-  # test "#create should return response :ok with admin user provided" do
-  #   @user.add_role :admin
-  #   post languages_url, params: @valid_language_params, headers: { "Authorization": "Bearer #{ @token }" }
-  #   assert_response :accepted
-  # end
+  test "#create should return response :ok with admin user provided" do
+    @user.add_role :admin
+    post languages_url, params: @valid_language_params, headers: { "Authorization": "Bearer #{ @token }" }
+    assert_response :accepted
+  end
 
-  # test "#create should return response :bad_request with no params provided" do
-  #   @user.add_role :admin
-  #   post languages_url, headers: { "Authorization": "Bearer #{ @token }" }
-  #   assert_response :bad_request
-  # end
+  test "#create should return response :bad_request with no params provided" do
+    @user.add_role :admin
+    post languages_url, headers: { "Authorization": "Bearer #{ @token }" }
+    assert_response :bad_request
+  end
 
-  # test "#create should return a language that can be fetched from the database" do
-  #   @user.add_role :admin
-  #   post languages_url, params: @valid_language_params, headers: { "Authorization": "Bearer #{ @token }" }
-  #   body = JSON.parse(response.body)
-  #   assert_nothing_raised { Language.find(body["id"]) }
-  # end
+  test "#create should add a language to the database" do
+    @user.add_role :admin
+    assert_difference ("Language.count") {
+      post languages_url, params: @valid_language_params, headers: { "Authorization": "Bearer #{ @token }" }
+    }
+  end
 
-  # test "#create should return a language that matches the provided language params" do
-  #   @user.add_role :admin
-  #   post languages_url, params: @valid_language_params, headers: { "Authorization": "Bearer #{ @token }" }
-  #   body = JSON.parse(response.body)
-  #   @valid_language_params.each do |key, value|
-  #     assert_equal value, body["#{ key}"]
-  #   end
-  # end
+  test "#create should return a language that can be fetched from the database" do
+    @user.add_role :admin
+    post languages_url, params: @valid_language_params, headers: { "Authorization": "Bearer #{ @token }" }
+    body = JSON.parse(response.body)
+    assert_nothing_raised { Language.find(body["id"]) }
+  end
+
+  test "#create should return a language that matches the provided language params" do
+    @user.add_role :admin
+    post languages_url, params: @valid_language_params, headers: { "Authorization": "Bearer #{ @token }" }
+    body = JSON.parse(response.body)
+    @valid_language_params.each do |key, value|
+      assert_equal value, body["#{ key}"]
+    end
+  end
 
   # # ##########
   # # # UPDATE #
