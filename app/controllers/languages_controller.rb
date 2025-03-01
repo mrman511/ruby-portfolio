@@ -32,7 +32,9 @@ class LanguagesController < ApplicationController
   end
 
   def destroy
-    render json: {}, status: :ok
+    language = Language.find(params[:id])
+    language.destroy
+    render json: { message: "Language destroyed" }, status: :ok
   end
 
   private
@@ -54,5 +56,4 @@ class LanguagesController < ApplicationController
   def permitted_params
     params.permit(:name)
   end
-
 end

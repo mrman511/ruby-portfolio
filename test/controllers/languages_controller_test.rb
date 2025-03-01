@@ -191,53 +191,53 @@ class LanguagesControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
-  # # ###########
-  # # # DESTROY #
-  # # ###########
+  # ###########
+  # # DESTROY #
+  # ###########
 
-  # test "#destroy returns response :unauthorized with no Authoriaztion headers present" do
-  #   delete language_url(@base_language.id)
-  #   body = JSON.parse(response.body)
-  #   assert_equal "Please log in", body["message"]
-  #   assert_response :unauthorized
-  # end
+  test "#destroy returns response :unauthorized with no Authoriaztion headers present" do
+    delete language_url(@base_language.id)
+    body = JSON.parse(response.body)
+    assert_equal "Please log in", body["message"]
+    assert_response :unauthorized
+  end
 
-  # test "#destroy should return response :unauthorized with non admin user provided" do
-  #   delete language_url(@base_language.id), headers: { "Authorization": "Bearer #{ @token }" }
-  #   body = JSON.parse(response.body)
-  #   assert_equal "Permission denied", body["message"]
-  #   assert_response :unauthorized
-  # end
+  test "#destroy should return response :unauthorized with non admin user provided" do
+    delete language_url(@base_language.id), headers: { "Authorization": "Bearer #{ @token }" }
+    body = JSON.parse(response.body)
+    assert_equal "Permission denied", body["message"]
+    assert_response :unauthorized
+  end
 
-  # test "#destroy should return response :ok with admin user provided" do
-  #   @user.add_role :admin
-  #   delete language_url(@base_language.id), headers: { "Authorization": "Bearer #{ @token }" }
-  #   assert_response :ok
-  # end
+  test "#destroy should return response :ok with admin user provided" do
+    @user.add_role :admin
+    delete language_url(@base_language.id), headers: { "Authorization": "Bearer #{ @token }" }
+    assert_response :ok
+  end
 
-  # test "#destroy should remove a language from the database" do
-  #   @user.add_role :admin
-  #   assert_difference("Language.count", -1) {
-  #     delete language_url(@base_language.id), headers: { "Authorization": "Bearer #{ @token }" }
-  #   }
-  # end
+  test "#destroy should remove a language from the database" do
+    @user.add_role :admin
+    assert_difference("Language.count", -1) {
+      delete language_url(@base_language.id), headers: { "Authorization": "Bearer #{ @token }" }
+    }
+  end
 
-  # test "#destroy should removes specified language from the database" do
-  #   @user.add_role :admin
-  #   id = @base_language.id
-  #   delete language_url(@base_language.id), headers: { "Authorization": "Bearer #{ @token }" }
-  #   assert_raises(ActiveRecord::RecordNotFound) {
-  #     Language.find(id)
-  #   }
-  # end
+  test "#destroy should removes specified language from the database" do
+    @user.add_role :admin
+    id = @base_language.id
+    delete language_url(@base_language.id), headers: { "Authorization": "Bearer #{ @token }" }
+    assert_raises(ActiveRecord::RecordNotFound) {
+      Language.find(id)
+    }
+  end
 
-  # test "#destroy should return response :not_found with invalid language" do
-  #   @user.add_role :admin
-  #   delete language_url(0), headers: { "Authorization": "Bearer #{ @token }" }
-  #   assert_response :not_found
-  # end
+  test "#destroy should return response :not_found with invalid language" do
+    @user.add_role :admin
+    delete language_url(0), headers: { "Authorization": "Bearer #{ @token }" }
+    assert_response :not_found
+  end
 
-  # test "#destroy should return error ActionController::UrlGenerationError with no language id" do
-  #   assert_raises(ActionController::UrlGenerationError) { language_url }
-  # end
+  test "#destroy should return error ActionController::UrlGenerationError with no language id" do
+    assert_raises(ActionController::UrlGenerationError) { language_url }
+  end
 end
