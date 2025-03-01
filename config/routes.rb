@@ -1,6 +1,7 @@
 Rails.application.routes.draw do
   resources :users
   resources :projects
+  resources :languages
   # get "/user", to: "users#show"
 
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
