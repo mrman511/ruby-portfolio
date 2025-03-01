@@ -7,7 +7,7 @@ class LanguagesController < ApplicationController
   end
 
   def show
-    render json: {}, status: :ok
+    render json: Language.find(params[:id]), status: :ok
   end
 
   def create

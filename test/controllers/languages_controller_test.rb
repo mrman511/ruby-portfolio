@@ -59,31 +59,31 @@ class LanguagesControllerTest < ActionDispatch::IntegrationTest
     assert_equal 0, body.length
   end
 
-  # # ########
-  # # # SHOW #
-  # # ########
+  # ########
+  # # SHOW #
+  # ########
 
-  # test "#show returns response :ok" do
-  #   get language_url(@base_language.id)
-  #   assert_response :ok
-  # end
+  test "#show returns response :ok" do
+    get language_url(@base_language.id)
+    assert_response :ok
+  end
 
-  # test "#show returns a language that can be fetched from the database" do
-  #   get language_url(@base_language.id)
-  #   body = JSON.parse(response.body)
-  #   assert_nothing_raised {
-  #     Language.find(body["id"])
-  #   }
-  # end
+  test "#show returns a language that can be fetched from the database" do
+    get language_url(@base_language.id)
+    body = JSON.parse(response.body)
+    assert_nothing_raised {
+      Language.find(body["id"])
+    }
+  end
 
-  # test "#show returns response :not_found when given an invalid language id" do
-  #   get language_url(0)
-  #   assert_response :not_found
-  # end
+  test "#show returns response :not_found when given an invalid language id" do
+    get language_url(0)
+    assert_response :not_found
+  end
 
-  # test "#show should return error ActionController::UrlGenerationError know yet with no language id" do
-  #   assert_raises(ActionController::UrlGenerationError) { show language_url }
-  # end
+  test "#show should return error ActionController::UrlGenerationError know yet with no language id" do
+    assert_raises(ActionController::UrlGenerationError) { show language_url }
+  end
 
   # # ##########
   # # # CREATE #
