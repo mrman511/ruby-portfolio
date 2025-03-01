@@ -23,7 +23,12 @@ class LanguagesController < ApplicationController
   end
 
   def update
-    render json: {}, status: :ok
+    @language = Language.find(params[:id])
+    if update_language
+      render json: @language, status: :accepted
+    else
+      render json: @language, status: :bad_request
+    end
   end
 
   def destroy
@@ -31,6 +36,20 @@ class LanguagesController < ApplicationController
   end
 
   private
+
+  def update_language
+    updated = false
+    if !permitted_params.empty?
+      @language.update permitted_params
+      updated = true
+    end
+    if params[:icon]
+      @language.icon.purge
+      @language.icon.attach(params[:icon])
+      updated = true
+    end
+    updated
+  end
 
   def permitted_params
     params.permit(:name)

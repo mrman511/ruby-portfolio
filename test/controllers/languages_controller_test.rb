@@ -138,58 +138,58 @@ class LanguagesControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
-  # # ##########
-  # # # UPDATE #
-  # # ##########
+  # ##########
+  # # UPDATE #
+  # ##########
 
-  # test "#update returns response :unauthorized with no Authoriaztion headers present" do
-  #   patch language_url(@base_language.id), params: @valid_language_params
-  #   body = JSON.parse(response.body)
-  #   assert_equal "Please log in", body["message"]
-  #   assert_response :unauthorized
-  # end
+  test "#update returns response :unauthorized with no Authorization headers present" do
+    patch language_url(@base_language.id), params: @valid_language_params
+    body = JSON.parse(response.body)
+    assert_equal "Please log in", body["message"]
+    assert_response :unauthorized
+  end
 
-  # test "#update should return response :unauthorized with non admin user provided" do
-  #   patch language_url(@base_language.id), params: @valid_language_params, headers: { "Authorization": "Bearer #{ @token }" }
-  #   body = JSON.parse(response.body)
-  #   assert_equal "Permission denied", body["message"]
-  #   assert_response :unauthorized
-  # end
+  test "#update should return response :unauthorized with non admin user provided" do
+    patch language_url(@base_language.id), params: @valid_language_params, headers: { "Authorization": "Bearer #{ @token }" }
+    body = JSON.parse(response.body)
+    assert_equal "Permission denied", body["message"]
+    assert_response :unauthorized
+  end
 
-  # test "#update should return response :accepted with admin user provided" do
-  #   @user.add_role :admin
-  #   patch language_url(@base_language.id), params: @valid_language_params, headers: { "Authorization": "Bearer #{ @token }" }
-  #   assert_response :accepted
-  # end
+  test "#update should return response :accepted with admin user provided" do
+    @user.add_role :admin
+    patch language_url(@base_language.id), params: @valid_language_params, headers: { "Authorization": "Bearer #{ @token }" }
+    assert_response :accepted
+  end
 
-  # test "#update should return response :bad_request with no params provided" do
-  #   @user.add_role :admin
-  #   patch language_url(@base_language.id), headers: { "Authorization": "Bearer #{ @token }" }
-  #   assert_response :bad_request
-  # end
+  test "#update should return response :bad_request with no params provided" do
+    @user.add_role :admin
+    patch language_url(@base_language.id), headers: { "Authorization": "Bearer #{ @token }" }
+    assert_response :bad_request
+  end
 
-  # test "#update should return response :bad_request with only invalid params provided" do
-  #   @user.add_role :admin
-  #   patch language_url(@base_language.id), params: { length: 2589 }, headers: { "Authorization": "Bearer #{ @token }" }
-  #   assert_response :bad_request
-  # end
+  test "#update should return response :bad_request with only invalid params provided" do
+    @user.add_role :admin
+    patch language_url(@base_language.id), params: { length: 2589 }, headers: { "Authorization": "Bearer #{ @token }" }
+    assert_response :bad_request
+  end
 
-  # test "#update should return a language that matches the id of the language requested for update" do
-  #   @user.add_role :admin
-  #   patch language_url(@base_language.id), params: @valid_language_params, headers: { "Authorization": "Bearer #{ @token }" }
-  #   body = JSON.parse(response.body)
-  #   assert_equal @base_language.id, @user.id
-  # end
+  test "#update should return a language that matches the id of the language requested for update" do
+    @user.add_role :admin
+    patch language_url(@base_language.id), params: @valid_language_params, headers: { "Authorization": "Bearer #{ @token }" }
+    body = JSON.parse(response.body)
+    assert_equal @base_language.id, @user.id
+  end
 
-  # test "#update should update the requested language in the database" do
-  #   @user.add_role :admin
-  #   patch language_url(@base_language.id), params: @valid_language_params, headers: { "Authorization": "Bearer #{ @token }" }
-  #   body = JSON.parse(response.body)
-  #   fetched_language = Language.find(body["id"])
-  #   @valid_language_params.each do |key, value|
-  #     assert_equal value, fetched_language[:"#{ key}"]
-  #   end
-  # end
+  test "#update should update the requested language in the database" do
+    @user.add_role :admin
+    patch language_url(@base_language.id), params: @valid_language_params, headers: { "Authorization": "Bearer #{ @token }" }
+    body = JSON.parse(response.body)
+    fetched_language = Language.find(body["id"])
+    @valid_language_params.each do |key, value|
+      assert_equal value, fetched_language[:"#{ key}"]
+    end
+  end
 
   # # ###########
   # # # DESTROY #
