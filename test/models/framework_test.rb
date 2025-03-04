@@ -11,6 +11,10 @@ class FrameworkTest < ActiveSupport::TestCase
     @use_case = UseCase.create!(name: "Server")
   end
 
+  # ##########
+  # # CREATE #
+  # ##########
+
   test "#create adds a framework to the data base with valid params" do
     assert_difference("Framework.count") {
       Framework.create!(@valid_framework_params)
@@ -21,6 +25,10 @@ class FrameworkTest < ActiveSupport::TestCase
     created_framework = Framework.create!(@valid_framework_params)
     assert_nothing_raised { Framework.find(created_framework.id) }
   end
+
+  # # ########
+  # # # NAME #
+  # # ########
 
   test "#name is a required attribute" do
     assert_raises(ActiveRecord::RecordInvalid) {
@@ -41,6 +49,10 @@ class FrameworkTest < ActiveSupport::TestCase
     }
   end
 
+  # # ########
+  # # # icon #
+  # # ########
+
   test "#icon is a file attachment" do
     created_framework = Framework.create!(@valid_framework_params)
     assert created_framework.icon.attached?
@@ -58,17 +70,90 @@ class FrameworkTest < ActiveSupport::TestCase
     assert_not created_framework.icon.attached?
   end
 
-  test "#add_use_case creates a FrameworkUseCase with a valid UseCase id" do
+  # ################
+  # # ADD USE CASE #
+  # ################
+
+  test "#add_use_case creates a FrameworkUseCase with a valid UseCase name" do
     created_framework = Framework.create!(@valid_framework_params)
     assert_difference("FrameworkUseCase.count") {
-      created_framework.add_use_case(@use_case.id)
+      created_framework.add_use_case(name: "API")
     }
   end
 
-  test "#add_use_case adds a UseCase to the framework with a valid UseCase id" do
+  test "#add_use_case creates a new UseCase with a valid params that do not belong to a current UseCase" do
+    created_framework = Framework.create!(@valid_framework_params)
+    assert_difference("UseCase.count") {
+      created_framework.add_use_case(name: "API")
+    }
+  end
+
+  test "#add_use_case adds a UseCase to framework.use_cases with a valid params that do not belong to a current UseCase" do
     created_framework = Framework.create!(@valid_framework_params)
     assert_difference("created_framework.use_cases.count") {
-      created_framework.add_use_case(@use_case.id)
+      created_framework.add_use_case(name: "API")
+    }
+  end
+
+  test "#add_use_case does not create a new UseCase if params already exist as a UseCase" do
+    created_framework = Framework.create!(@valid_framework_params)
+    assert_difference("UseCase.count", 0) {
+      created_framework.add_use_case(name: @use_case.name)
+    }
+  end
+
+  test "#add_use_case does not create a new UseCase if params already exist as a UseCase but name is entered as lower case" do
+    created_framework = Framework.create!(@valid_framework_params)
+    assert_difference("UseCase.count", 0) {
+      created_framework.add_use_case(name: @use_case.name.downcase)
+    }
+  end
+
+  test "#add_use_case creates a new FrameworkUseCase if params already exist as a UseCase" do
+    created_framework = Framework.create!(@valid_framework_params)
+    assert_difference("FrameworkUseCase.count") {
+      created_framework.add_use_case(name: @use_case.name)
+    }
+  end
+
+  test "#add_use_case adds a UseCase framework.use_cases if params already exist as a UseCase" do
+    created_framework = Framework.create!(@valid_framework_params)
+    assert_difference("created_framework.use_cases.count") {
+      created_framework.add_use_case(name: @use_case.name)
+    }
+  end
+
+  # ###################
+  # # REMOVE USE CASE #
+  # ###################
+
+  test "#remove_use_case Destroys a FrameworkUseCase in the data base with valid UseCase that belongs with matching framework" do
+    created_framework = Framework.create!(@valid_framework_params)
+    created_framework.add_use_case(name: @use_case.name)
+    assert_difference("FrameworkUseCase.count", -1) {
+      created_framework.remove_use_case(@use_case.id)
+    }
+  end
+
+  test "#remove_use_case removes a UseCase from framework.use_cases with valid UseCase that belongs with matching framework" do
+    created_framework = Framework.create!(@valid_framework_params)
+    created_framework.add_use_case(name: @use_case.name)
+    assert_difference("created_framework.use_cases.count", -1) {
+      created_framework.remove_use_case(@use_case.id)
+    }
+  end
+
+  test "#remove_use_case raises with valid UseCase that does not belong to the framework" do
+    created_framework = Framework.create!(@valid_framework_params)
+    assert_raises(ActiveRecord::RecordNotFound) {
+      created_framework.remove_use_case(@use_case.id)
+    }
+  end
+
+  test "#remove_use_case raises with invalid UseCase" do
+    created_framework = Framework.create!(@valid_framework_params)
+    assert_raises(ActiveRecord::RecordNotFound) {
+      created_framework.remove_use_case(0)
     }
   end
 
@@ -83,7 +168,7 @@ class FrameworkTest < ActiveSupport::TestCase
 
   test "#destroy removes all associated FrameworkUsesCases from the database" do
     created_framework = Framework.create!(@valid_framework_params)
-    created_framework.add_use_case(@use_case.id)
+    created_framework.add_use_case(name: @use_case.name)
     count = created_framework.use_cases.count
     assert_difference "FrameworkUseCase.count", -count do
       created_framework.destroy

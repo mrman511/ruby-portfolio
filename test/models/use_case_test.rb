@@ -63,7 +63,7 @@ class UseCaseTest < ActiveSupport::TestCase
 
   test "#destroy removes associated FrameworkUsesCases from the database" do
     created_use_case = UseCase.create!(@valid_use_case_params)
-    @framework.add_use_case(created_use_case.id)
+    @framework.add_use_case(name: created_use_case.name)
     count = created_use_case.frameworks.count
     assert_difference "FrameworkUseCase.count", -count do
       created_use_case.destroy

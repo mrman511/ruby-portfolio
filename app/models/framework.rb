@@ -9,9 +9,20 @@ class Framework < ApplicationRecord
 
   validates :name, presence: true, uniqueness: true
 
-  def add_use_case(use_case_id)
-    use_case = UseCase.find(use_case_id)
+  def add_use_case(params)
+    params[:name].titleize if params[:name].present?
+    use_case = UseCase.find_or_create_by(params)
     FrameworkUseCase.create!(use_case: use_case, framework: self)
+  end
+
+  def remove_use_case(use_case_id)
+    use_case = UseCase.find(use_case_id)
+    framework_use_case = FrameworkUseCase.where(use_case: use_case, framework_id: self).first
+    if framework_use_case.present?
+      framework_use_case.destroy
+    else
+      raise ActiveRecord::RecordNotFound
+    end
   end
 
   private
