@@ -2,6 +2,12 @@ Rails.application.routes.draw do
   resources :users
   resources :projects
   resources :languages
+
+  scope "language/:language_id", module: "language", as: "language" do
+    resources :frameworks
+    post "/frameworks/:id/add_use_case", to: "frameworks#add_use_case"
+    delete "/frameworks/:id/remove_use_case/:use_case_id", to: "frameworks#remove_use_case"
+  end
   # get "/user", to: "users#show"
 
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
