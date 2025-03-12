@@ -9,15 +9,13 @@ class Project < ApplicationRecord
   validates :github_url, presence: true
   validates :role, presence: true
 
-  private
-
   def add_framework(framework_id)
     framework = Framework.find(framework_id)
     ProjectFramework.create!(project: self, framework: framework)
   end
 
   def remove_framework(framework_id)
-    project_framework = ProjectFramework.where(project_id: self.id, framework_id: framework_id)
+    project_framework = ProjectFramework.where(project_id: self.id, framework_id: framework_id).first
     if project_framework.present?
       project_framework.destroy
     else
