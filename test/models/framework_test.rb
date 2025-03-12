@@ -9,6 +9,12 @@ class FrameworkTest < ActiveSupport::TestCase
       icon: File.open(Rails.root.join("test", "fixtures", "files", "default-avatar.jpg"))
     }
     @use_case = UseCase.create!(name: "Server")
+    @project = Project.create!(
+      title: "Portfolio",
+      description: "A website to display all of my previous projects and achievement's",
+      github_url: "https://github.com/mrman511",
+      role: "Creator"
+    )
   end
 
   # ##########
@@ -123,6 +129,17 @@ class FrameworkTest < ActiveSupport::TestCase
     }
   end
 
+  # ############
+  # # PROJECTS #
+  # ############
+
+  test "#projects can be added to frameworks through ProjectFrameworks" do
+    created_framework = Framework.create!(@valid_framework_params)
+    assert_difference("created_framework.projects.count") {
+      ProjectFramework.create!(project: @project, framework: created_framework)
+    }
+  end
+
   # ###################
   # # REMOVE USE CASE #
   # ###################
@@ -171,6 +188,15 @@ class FrameworkTest < ActiveSupport::TestCase
     created_framework.add_use_case(name: @use_case.name)
     count = created_framework.use_cases.count
     assert_difference "FrameworkUseCase.count", -count do
+      created_framework.destroy
+    end
+  end
+
+  test "#destroy removes all associated ProjectFrameworks from the database" do
+    created_framework = Framework.create!(@valid_framework_params)
+    ProjectFramework.create!(project: @project, framework: created_framework)
+    count = created_framework.projects.count
+    assert_difference "ProjectFramework.count", -count do
       created_framework.destroy
     end
   end
