@@ -10,6 +10,9 @@ class ProjectTest < ActiveSupport::TestCase
       role: "Co-creator",
       image: File.open(Rails.root.join("test", "fixtures", "files", "default-avatar.jpg"))
     }
+
+    @language = Language.create!(name: "Ruby")
+    @framework = Framework.create!(name: "Ruby on Rails", language: @language)
   end
 
   test "#create adds a project to the data base with valid params" do
@@ -62,5 +65,86 @@ class ProjectTest < ActiveSupport::TestCase
     created_project = Project.create!(@valid_project_params)
     created_project.image.purge
     assert_not created_project.image.attached?
+  end
+
+  # #################
+  # # ADD FRAMEWORK #
+  # #################
+
+  test "#add_framework creates a ProjectFramework with a valid Framework name" do
+    created_project = Project.create!(@valid_project_params)
+    assert_difference("ProjectFramework.count") {
+      created_project.add_framework(@framework.id)
+    }
+  end
+
+  test "#add_framework adds a Framework to framework.frameworks with a valid params that do not belong to a current Framework" do
+    created_project = Project.create!(@valid_project_params)
+    assert_difference("created_project.frameworks.count") {
+      created_project.add_framework(@framework.id)
+    }
+  end
+
+  test "#add_framework does not create a new Framework" do
+    created_project = Project.create!(@valid_project_params)
+    assert_difference("Framework.count", 0) {
+      created_project.add_framework(@framework.id)
+    }
+  end
+
+  # ####################
+  # # REMOVE FRAMEWORK #
+  # ####################
+
+  test "#remove_framework Destroys a ProjectFramework in the data base with valid Framework that belongs with matching Project" do
+    created_project = Project.create!(@valid_project_params)
+    created_project.add_framework(@framework.id)
+    assert_difference("ProjectFramework.count", -1) {
+      created_project.remove_framework(@framework.id)
+    }
+  end
+
+  test "#remove_framework removes a Framework from projects.frameworks with valid Framework that belongs with matching Project" do
+    created_project = Project.create!(@valid_project_params)
+    created_project.add_framework(@framework.id)
+    assert_difference("created_project.frameworks.count", -1) {
+      created_project.remove_framework(@framework.id)
+    }
+  end
+
+  test "#remove_framework raises ActiveRecord::RecordNotFound with valid Framework that does not belong to the Project" do
+    created_project = Project.create!(@valid_project_params)
+    assert_raises(ActiveRecord::RecordNotFound) {
+      created_project.remove_framework(@framework.id)
+    }
+  end
+
+  test "#remove_framework raises ActiveRecord::RecordNotFound with invalid Framework" do
+    created_project = Project.create!(@valid_project_params)
+    assert_raises(ActiveRecord::RecordNotFound) {
+      created_project.remove_framework(0)
+    }
+  end
+
+  # ###########
+  # # DESTROY #
+  # ###########
+
+  test "#destroy does not destroy the associated Framework" do
+    created_project = Project.create!(@valid_project_params)
+    created_project.add_framework(@framework.id)
+    created_project.destroy
+    assert_nothing_raised {
+      Framework.find(@framework.id)
+    }
+  end
+
+  test "#destroy removes all associated ProjectFrameworks from the database" do
+    created_project = Project.create!(@valid_project_params)
+    created_project.add_framework(@framework.id)
+    count = created_project.frameworks.count
+    assert_difference "ProjectFramework.count", -count do
+      created_project.destroy
+    end
   end
 end

@@ -3,6 +3,9 @@ class Framework < ApplicationRecord
   has_many :framework_use_cases, dependent: :delete_all
   has_many :use_cases, through: :framework_use_cases
 
+  has_many :project_frameworks, dependent: :delete_all
+  has_many :projects, through: :project_frameworks
+
   has_one_attached :icon
 
   before_validation :titleize_name
