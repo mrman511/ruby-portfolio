@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_02_25_155353) do
+ActiveRecord::Schema[8.0].define(version: 2025_03_12_213318) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -62,6 +62,15 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_25_155353) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "project_frameworks", force: :cascade do |t|
+    t.integer "project_id", null: false
+    t.integer "framework_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["framework_id"], name: "index_project_frameworks_on_framework_id"
+    t.index ["project_id"], name: "index_project_frameworks_on_project_id"
+  end
+
   create_table "projects", force: :cascade do |t|
     t.string "title"
     t.text "description"
@@ -111,4 +120,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_02_25_155353) do
   add_foreign_key "framework_use_cases", "frameworks"
   add_foreign_key "framework_use_cases", "use_cases"
   add_foreign_key "frameworks", "languages"
+  add_foreign_key "project_frameworks", "frameworks"
+  add_foreign_key "project_frameworks", "projects"
 end
