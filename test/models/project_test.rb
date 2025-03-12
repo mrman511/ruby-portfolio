@@ -147,5 +147,4 @@ class ProjectTest < ActiveSupport::TestCase
       created_project.destroy
     end
   end
-  
 end
