@@ -1,6 +1,7 @@
 class ProjectsController < ApplicationController
   skip_before_action :authorized, only: [ :index, :show ]
-  before_action :is_admin, only: [ :create, :update, :destroy ]
+  before_action :is_admin
+  skip_before_action :is_admin, only: [ :index, :show ]
 
   def index
     render json: Project.all, status: :ok
@@ -16,7 +17,7 @@ class ProjectsController < ApplicationController
       project.image.attach(params[:image])
     end
     if project.save
-      render json: project, status: :accepted
+      render json: project, status: :ok
     else
       render json: project.errors, status: :bad_request
     end
@@ -25,10 +26,22 @@ class ProjectsController < ApplicationController
   def update
     @project = Project.find(params[:id])
     if update_project
-      render json: @project, status: :accepted
+      render json: @project, status: :ok
     else
       render json: @project, status: :bad_request
     end
+  end
+
+  def add_framework
+    project = Project.find(params[:id])
+    project.add_framework(params[:framework_id])
+    render json: project, status: :ok
+  end
+
+  def remove_framework
+    project = Project.find(params[:id])
+    project.remove_framework(params[:framework_id])
+    render json: project, status: :ok
   end
 
   def destroy

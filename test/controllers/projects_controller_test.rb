@@ -10,6 +10,8 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
   end
 
   setup do
+    @language = Language.create!(name: "Ruby")
+    @framework = Framework.create!(name: "Ruby on Rails", language: @language)
     @base_project = Project.create({
       title: "Pillpopper",
       description: "Lighthouse labs bootcamp final project",
@@ -114,7 +116,7 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
   test "#create should return response :ok with admin user provided" do
     @user.add_role :admin
     post projects_url, params: @valid_project_params, headers: { "Authorization": "Bearer #{ @token }" }
-    assert_response :accepted
+    assert_response :ok
   end
 
   test "#create should return response :bad_request with no params provided" do
@@ -157,10 +159,10 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     assert_response :unauthorized
   end
 
-  test "#update should return response :accepted with admin user provided" do
+  test "#update should return response :ok with admin user provided" do
     @user.add_role :admin
     patch project_url(@base_project.id), params: @valid_project_params, headers: { "Authorization": "Bearer #{ @token }" }
-    assert_response :accepted
+    assert_response :ok
   end
 
   test "#update should return response :bad_request with no params provided" do
@@ -190,6 +192,123 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     @valid_project_params.each do |key, value|
       assert_equal value, fetched_project[:"#{ key}"]
     end
+  end
+
+  # #################
+  # # ADD FRAMEWORK #
+  # #################
+
+  test "#add_framework should return response :unauthorized when a user with not authorization headers provided" do
+    post "/project/#{ @base_project.id }/add_framework/#{ @framework.id }"
+    body = JSON.parse(response.body)
+    assert_equal "Please log in", body["message"]
+    assert_response :unauthorized
+  end
+
+  test "#add_framework should return response :unauthorized with non admin user provided" do
+    post "/project/#{ @base_project.id }/add_framework/#{ @framework.id }", headers: { "Authorization": "Bearer #{ @token }" }
+    body = JSON.parse(response.body)
+    assert_equal "Permission denied", body["message"]
+    assert_response :unauthorized
+  end
+
+  test "#add_framework should return response :ok with admin user provided" do
+    @user.add_role :admin
+    post "/project/#{ @base_project.id }/add_framework/#{ @framework.id }", headers: { "Authorization": "Bearer #{ @token }" }
+    assert_response :ok
+  end
+
+  test "#add_framework should return response :not_found with no framework_id" do
+    @user.add_role :admin
+    post "/project/#{ @base_project.id }/add_framework", headers: { "Authorization": "Bearer #{ @token }" }
+    assert_response :not_found
+  end
+
+  test "#add_framework should return response :not_found with invalid framework_id" do
+    @user.add_role :admin
+    post "/project/#{ @base_project.id }/add_framework/0", headers: { "Authorization": "Bearer #{ @token }" }
+    assert_response :not_found
+  end
+
+  test "#add_framework adds a framework to requested projects frameworks" do
+    @user.add_role :admin
+    assert_difference("@base_project.frameworks.count") {
+      post "/project/#{ @base_project.id }/add_framework/#{ @framework.id }", headers: { "Authorization": "Bearer #{ @token }" }
+    }
+  end
+
+  test "#add_framework adds specified framework to requested projects frameworks" do
+    @user.add_role :admin
+    post "/project/#{ @base_project.id }/add_framework/#{ @framework.id }", headers: { "Authorization": "Bearer #{ @token }" }
+    framework_present = false
+    @base_project.frameworks.each do | framework |
+      if framework.id == @framework.id
+        framework_present = true
+      end
+    end
+    assert framework_present
+  end
+
+  # ####################
+  # # REMOVE FRAMEWORK #
+  # ####################
+
+  test "#remove_framework should return response :unauthorized when a user with not authorization headers provided" do
+    @base_project.add_framework(@framework.id)
+    delete "/project/#{ @base_project.id }/remove_framework/#{ @framework.id }"
+    body = JSON.parse(response.body)
+    assert_equal "Please log in", body["message"]
+    assert_response :unauthorized
+  end
+
+  test "#remove_framework should return response :unauthorized with non admin user provided" do
+    @base_project.add_framework(@framework.id)
+    delete "/project/#{ @base_project.id }/remove_framework/#{ @framework.id }", headers: { "Authorization": "Bearer #{ @token }" }
+    body = JSON.parse(response.body)
+    assert_equal "Permission denied", body["message"]
+    assert_response :unauthorized
+  end
+
+  test "#remove_framework should return response :ok with admin user provided" do
+    @base_project.add_framework(@framework.id)
+    @user.add_role :admin
+    delete "/project/#{ @base_project.id }/remove_framework/#{ @framework.id }", headers: { "Authorization": "Bearer #{ @token }" }
+    assert_response :ok
+  end
+
+  test "#remove_framework should return response :not_found with no framework_id" do
+    @base_project.add_framework(@framework.id)
+    @user.add_role :admin
+    delete "/project/#{ @base_project.id }/remove_framework", headers: { "Authorization": "Bearer #{ @token }" }
+    assert_response :not_found
+  end
+
+  test "#remove_framework should return response :not_found with invalid framework_id" do
+    @base_project.add_framework(@framework.id)
+    @user.add_role :admin
+    delete "/project/#{ @base_project.id }/remove_framework/0", headers: { "Authorization": "Bearer #{ @token }" }
+    assert_response :not_found
+  end
+
+  test "#remove_framework removes a framework from requested projects frameworks" do
+    @base_project.add_framework(@framework.id)
+    @user.add_role :admin
+    assert_difference("@base_project.frameworks.count", -1) {
+      delete "/project/#{ @base_project.id }/remove_framework/#{ @framework.id }", headers: { "Authorization": "Bearer #{ @token }" }
+    }
+  end
+
+  test "#remove_framework removes specified framework to requested projects frameworks" do
+    @base_project.add_framework(@framework.id)
+    @user.add_role :admin
+    delete "/project/#{ @base_project.id }/remove_framework/#{ @framework.id }", headers: { "Authorization": "Bearer #{ @token }" }
+    framework_present = false
+    @base_project.frameworks.each do | framework |
+      if framework.id == @framework.id
+        framework_present = true
+      end
+    end
+    assert_not framework_present
   end
 
   # ###########

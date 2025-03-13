@@ -1,6 +1,8 @@
 Rails.application.routes.draw do
   resources :users
   resources :projects
+  post "project/:id/add_framework/:framework_id", to: "projects#add_framework"
+  delete "project/:id/remove_framework/:framework_id", to: "projects#remove_framework"
   resources :languages
 
   scope "language/:language_id", module: "language", as: "language" do
