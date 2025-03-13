@@ -13,6 +13,7 @@ class ProjectTest < ActiveSupport::TestCase
 
     @language = Language.create!(name: "Ruby")
     @framework = Framework.create!(name: "Ruby on Rails", language: @language)
+    @framework2 = Framework.create!(name: "Sintra", language: @language)
   end
 
   test "#create adds a project to the data base with valid params" do
@@ -88,6 +89,28 @@ class ProjectTest < ActiveSupport::TestCase
   test "#add_framework does not create a new Framework" do
     created_project = Project.create!(@valid_project_params)
     assert_difference("Framework.count", 0) {
+      created_project.add_framework(@framework.id)
+    }
+  end
+
+  test "#add_framework adds a new language to Project with unique Language" do
+    created_project = Project.create!(@valid_project_params)
+    assert_difference("created_project.languages.count") {
+      created_project.add_framework(@framework.id)
+    }
+  end
+
+  test "#add_framework does not add a language to project.languages if the project already posesses the Language" do
+    created_project = Project.create!(@valid_project_params)
+    created_project.add_framework(@framework.id)
+    assert_difference("created_project.languages.count", 0) {
+      created_project.add_framework(@framework2.id)
+    }
+  end
+
+  test "#add_framework does not create a new Language" do
+    created_project = Project.create!(@valid_project_params)
+    assert_difference("Language.count", 0) {
       created_project.add_framework(@framework.id)
     }
   end

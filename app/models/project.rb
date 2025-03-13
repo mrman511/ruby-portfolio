@@ -3,6 +3,7 @@ class Project < ApplicationRecord
 
   has_many :project_frameworks, dependent: :delete_all
   has_many :frameworks, through: :project_frameworks
+  has_many :languages, -> { distinct }, through: :frameworks
 
   validates :title, presence: true
   validates :description, presence: true
