@@ -15,8 +15,7 @@ class ProjectFramework < ApplicationRecord
   end
 
   def remove_use_case(use_case_id)
-    use_case = UseCase.find(use_case_id)
-    framework_use_case = FrameworkUseCase.where(framework: self, use_case: use_case).first
+    framework_use_case = FrameworkUseCase.where(framework_id: self.framework.id, use_case_id: use_case_id).first
     project_framework_use_case = ProjectFrameworkUseCase.where(project_framework_id: self.id, framework_use_case_id: framework_use_case.id).first
     project_framework_use_case.destroy
   end
