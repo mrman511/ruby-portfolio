@@ -5,6 +5,14 @@ class FrameworkUseCaseTest < ActiveSupport::TestCase
     @language = Language.create!(name: "Ruby")
     @framework = Framework.create!(name: "Ruby on Rails", language: @language)
     @use_case = UseCase.create!(name: "Server")
+
+    @project = Project.create!(
+      title: "Portfolio",
+      description: "A website to display all of my previous projects and achievement's",
+      github_url: "https://github.com/mrman511",
+      role: "Creator"
+    )
+    @project_framework = @project.add_framework(@framework.id)
   end
 
   test "#create adds a FrameWorkUseCase to the database" do
@@ -66,6 +74,24 @@ class FrameworkUseCaseTest < ActiveSupport::TestCase
     framework_use_case = FrameworkUseCase.create!(framework: @framework, use_case: @use_case)
     assert_difference("UseCase.count", 0) {
       framework_use_case.destroy
+    }
+  end
+
+  test "#destroy removes a ProjectFrameworkUseCase from the database" do
+    framework_use_case = FrameworkUseCase.create!(framework: @framework, use_case: @use_case)
+    project_framework_use_case = @project_framework.add_use_case(@use_case.name)
+    assert_difference("ProjectFrameworkUseCase.count", -1) {
+      framework_use_case.destroy
+    }
+  end
+
+  test "#destroy removes specified ProjectFrameworkUseCase from the database" do
+    framework_use_case = FrameworkUseCase.create!(framework: @framework, use_case: @use_case)
+    project_framework_use_case = @project_framework.add_use_case(@use_case.name)
+    id = project_framework_use_case.id
+    framework_use_case.destroy
+    assert_raises(ActiveRecord::RecordNotFound) {
+      ProjectFrameworkUseCase.find(id)
     }
   end
 end

@@ -1,5 +1,5 @@
 class UseCase < ApplicationRecord
-  has_many :framework_use_cases, dependent: :delete_all
+  has_many :framework_use_cases, dependent: :destroy
   has_many :frameworks, through: :framework_use_cases
 
   has_one_attached :icon
