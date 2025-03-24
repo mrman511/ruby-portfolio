@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_03_12_213318) do
+ActiveRecord::Schema[8.0].define(version: 2025_03_23_150803) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -62,9 +62,18 @@ ActiveRecord::Schema[8.0].define(version: 2025_03_12_213318) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "project_framework_use_cases", force: :cascade do |t|
+    t.integer "project_framework_id"
+    t.integer "framework_use_case_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["framework_use_case_id"], name: "index_project_framework_use_cases_on_framework_use_case_id"
+    t.index ["project_framework_id"], name: "index_project_framework_use_cases_on_project_framework_id"
+  end
+
   create_table "project_frameworks", force: :cascade do |t|
-    t.integer "project_id", null: false
-    t.integer "framework_id", null: false
+    t.integer "project_id"
+    t.integer "framework_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["framework_id"], name: "index_project_frameworks_on_framework_id"
@@ -120,6 +129,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_03_12_213318) do
   add_foreign_key "framework_use_cases", "frameworks"
   add_foreign_key "framework_use_cases", "use_cases"
   add_foreign_key "frameworks", "languages"
+  add_foreign_key "project_framework_use_cases", "framework_use_cases"
+  add_foreign_key "project_framework_use_cases", "project_frameworks"
   add_foreign_key "project_frameworks", "frameworks"
   add_foreign_key "project_frameworks", "projects"
 end

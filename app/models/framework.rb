@@ -1,9 +1,9 @@
 class Framework < ApplicationRecord
   belongs_to :language
-  has_many :framework_use_cases, dependent: :delete_all
+  has_many :framework_use_cases, dependent: :destroy
   has_many :use_cases, through: :framework_use_cases
 
-  has_many :project_frameworks, dependent: :delete_all
+  has_many :project_frameworks, dependent: :destroy
   has_many :projects, through: :project_frameworks
 
   has_one_attached :icon

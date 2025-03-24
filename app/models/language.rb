@@ -1,5 +1,5 @@
 class Language < ApplicationRecord
-  has_many :frameworks, dependent: :delete_all
+  has_many :frameworks, dependent: :destroy
   has_one_attached :icon
 
   before_validation :titleize_name
