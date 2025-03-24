@@ -2,13 +2,16 @@ class ProjectsController < ApplicationController
   skip_before_action :authorized, only: [ :index, :show ]
   before_action :is_admin
   skip_before_action :is_admin, only: [ :index, :show ]
+  before_action :set_up
+  skip_before_action :set_up, only: [ :index, :create, :add_framework_use_case, :remove_framework_use_case ]
+  before_action :set_project_framework, only: [ :add_framework_use_case, :remove_framework_use_case ]
 
   def index
     render json: Project.all, status: :ok
   end
 
   def show
-    render json: Project.find(params[:id]), status: :ok
+    render json: @project, status: :ok
   end
 
   def create
@@ -24,7 +27,6 @@ class ProjectsController < ApplicationController
   end
 
   def update
-    @project = Project.find(params[:id])
     if update_project
       render json: @project, status: :ok
     else
@@ -33,24 +35,52 @@ class ProjectsController < ApplicationController
   end
 
   def add_framework
-    project = Project.find(params[:id])
-    project.add_framework(params[:framework_id])
-    render json: project, status: :ok
+    @project.add_framework(@framework.id)
+    render json: @project, status: :ok
   end
 
   def remove_framework
-    project = Project.find(params[:id])
-    project.remove_framework(params[:framework_id])
-    render json: project, status: :ok
+    @project.remove_framework(@framework.id)
+    render json: @project, status: :ok
+  end
+
+  def add_framework_use_case
+    @project_framework.add_use_case(params[:use_case_name])
+    render json: @project, status: :ok
+  end
+
+  def remove_framework_use_case
+    @project_framework.remove_use_case(params[:use_case_id])
+    render json: @project, status: :ok
   end
 
   def destroy
-    project = Project.find(params[:id])
-    project.destroy
+    @project.destroy
     render json: { message: "Project destroyed" }, status: :ok
   end
 
   private
+
+  def set_up
+    if params[:id]
+      set_project
+    end
+    if params[:framework_id]
+      set_framework
+    end
+  end
+
+  def set_project
+    @project = Project.find(params[:id])
+  end
+
+  def set_framework
+    @framework = Framework.find(params[:framework_id])
+  end
+
+  def set_project_framework
+    @project_framework = ProjectFramework.where(project_id: params[:id], framework_id: params[:framework_id]).first
+  end
 
   def update_project
     updated = false
