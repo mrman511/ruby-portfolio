@@ -48,7 +48,7 @@ class ProjectsController < ApplicationController
     @project_framework.add_use_case(params[:use_case_name])
     render json: @project, status: :ok
   end
-  
+
   def remove_framework_use_case
     @project_framework.remove_use_case(params[:use_case_id])
     render json: @project, status: :ok

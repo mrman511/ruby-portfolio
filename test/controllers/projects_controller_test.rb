@@ -337,7 +337,7 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
     body = JSON.parse(response.body)
     assert_response :ok
     end
-    
+
   test "#add_framework_use_case should return response :not_found when project does not have requested framework" do
     @user.add_role :admin
     post "/project/#{ @base_project.id }/framework/#{ @framework_id }/use_case/#{ @use_case.name }", headers: { "Authorization": "Bearer #{ @token }" }
@@ -372,6 +372,77 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
       end
     end
     assert use_case_present
+  end
+
+  # #############################
+  # # REMOVE FRAMEWORK USE CASE #
+  # #############################
+
+
+  test "#remove_framework_use_case should return response :unauthorized when a user with not authorization headers provided" do
+    project_framework = @base_project.add_framework(@framework.id)
+    project_framework.add_use_case(@use_case.name)
+    delete "/project/#{ @base_project.id }/framework/#{ @framework.id }/use_case/#{ @use_case.id }"
+    body = JSON.parse(response.body)
+    assert_equal "Please log in", body["message"]
+    assert_response :unauthorized
+  end
+
+  test "#remove_framework_use_case should return response :unauthorized with non admin user provided" do
+    project_framework = @base_project.add_framework(@framework.id)
+    project_framework.add_use_case(@use_case.name)
+    delete "/project/#{ @base_project.id }/framework/#{ @framework.id }/use_case/#{ @use_case.id }", headers: { "Authorization": "Bearer #{ @token }" }
+    body = JSON.parse(response.body)
+    assert_equal "Permission denied", body["message"]
+    assert_response :unauthorized
+  end
+
+  test "#remove_framework_use_case should return response :ok with admin user provided" do
+    @user.add_role :admin
+    project_framework = @base_project.add_framework(@framework.id)
+    project_framework.add_use_case(@use_case.name)
+    delete "/project/#{ @base_project.id }/framework/#{ @framework.id }/use_case/#{ @use_case.id }", headers: { "Authorization": "Bearer #{ @token }" }
+    assert_response :ok
+  end
+
+  test "#remove_framework_use_case should return response :not_found with no use_case_id" do
+    @user.add_role :admin
+    project_framework = @base_project.add_framework(@framework.id)
+    project_framework.add_use_case(@use_case.name)
+    delete "/project/#{ @base_project.id }/framework/#{ @framework.id }/use_case/", headers: { "Authorization": "Bearer #{ @token }" }
+    assert_response :not_found
+  end
+
+  test "#remove_framework_use_case removes a use_case from requested project_framework.use_cases" do
+    @user.add_role :admin
+    project_framework = @base_project.add_framework(@framework.id)
+    project_framework.add_use_case(@use_case.name)
+    assert_difference("project_framework.use_cases.count", -1) {
+      delete "/project/#{ @base_project.id }/framework/#{ @framework.id }/use_case/#{ @use_case.id }", headers: { "Authorization": "Bearer #{ @token }" }
+    }
+  end
+
+  test "#remove_framework_use_case removes a ProjectFrameworkUseCase from the database" do
+    @user.add_role :admin
+    project_framework = @base_project.add_framework(@framework.id)
+    project_framework.add_use_case(@use_case.name)
+    assert_difference("ProjectFrameworkUseCase.count", -1) {
+      delete "/project/#{ @base_project.id }/framework/#{ @framework.id }/use_case/#{ @use_case.id }", headers: { "Authorization": "Bearer #{ @token }" }
+    }
+  end
+
+  test "#remove_framework_use_case removes specified use_case from requested project_framework" do
+    @user.add_role :admin
+    project_framework = @base_project.add_framework(@framework.id)
+    project_framework.add_use_case(@use_case.name)
+    delete "/project/#{ @base_project.id }/framework/#{ @framework.id }/use_case/#{ @use_case.id }", headers: { "Authorization": "Bearer #{ @token }" }
+    use_case_present = false
+    project_framework.use_cases.each do | use_case |
+      if use_case.id == @use_case.id
+        use_case_present = true
+      end
+    end
+    assert_not use_case_present
   end
 
   # ###########
