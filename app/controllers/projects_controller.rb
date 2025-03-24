@@ -3,6 +3,8 @@ class ProjectsController < ApplicationController
   before_action :is_admin
   skip_before_action :is_admin, only: [ :index, :show ]
   before_action :set_up
+  skip_before_action :set_up, only: [ :index, :create, :add_framework_use_case, :remove_framework_use_case ]
+  before_action :set_project_framework, only: [ :add_framework_use_case, :remove_framework_use_case ]
 
   def index
     render json: Project.all, status: :ok
@@ -43,9 +45,13 @@ class ProjectsController < ApplicationController
   end
 
   def add_framework_use_case
+    @project_framework.add_use_case(params[:use_case_name])
+    render json: @project, status: :ok
   end
-
+  
   def remove_framework_use_case
+    @project_framework.remove_use_case(params[:use_case_id])
+    render json: @project, status: :ok
   end
 
   def destroy
@@ -70,6 +76,10 @@ class ProjectsController < ApplicationController
 
   def set_framework
     @framework = Framework.find(params[:framework_id])
+  end
+
+  def set_project_framework
+    @project_framework = ProjectFramework.where(project_id: params[:id], framework_id: params[:framework_id]).first
   end
 
   def update_project

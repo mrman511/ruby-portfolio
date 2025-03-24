@@ -12,6 +12,7 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
   setup do
     @language = Language.create!(name: "Ruby")
     @framework = Framework.create!(name: "Ruby on Rails", language: @language)
+    @use_case = UseCase.create!(name: "Server")
     @base_project = Project.create({
       title: "Pillpopper",
       description: "Lighthouse labs bootcamp final project",
@@ -309,6 +310,68 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
       end
     end
     assert_not framework_present
+  end
+
+  # ##########################
+  # # ADD FRAMEWORK USE CASE #
+  # ##########################
+
+  test "#add_framework_use_case should return response :unauthorized when a user with not authorization headers provided" do
+    post "/project/#{ @base_project.id }/framework/#{ @framework.id }/use_case/#{ @use_case.name }"
+    body = JSON.parse(response.body)
+    assert_equal "Please log in", body["message"]
+    assert_response :unauthorized
+  end
+
+  test "#add_framework_use_case should return response :unauthorized with non admin user provided" do
+    post "/project/#{ @base_project.id }/framework/#{ @framework.id }/use_case/#{ @use_case.name }", headers: { "Authorization": "Bearer #{ @token }" }
+    body = JSON.parse(response.body)
+    assert_equal "Permission denied", body["message"]
+    assert_response :unauthorized
+  end
+
+  test "#add_framework_use_case should return response :ok with admin user provided" do
+    @user.add_role :admin
+    @base_project.add_framework(@framework.id)
+    post "/project/#{ @base_project.id }/framework/#{ @framework.id }/use_case/#{ @use_case.name }", headers: { "Authorization": "Bearer #{ @token }" }
+    body = JSON.parse(response.body)
+    assert_response :ok
+    end
+    
+  test "#add_framework_use_case should return response :not_found when project does not have requested framework" do
+    @user.add_role :admin
+    post "/project/#{ @base_project.id }/framework/#{ @framework_id }/use_case/#{ @use_case.name }", headers: { "Authorization": "Bearer #{ @token }" }
+    assert body["message"],  "project does not have relationship with requested framework"
+    assert_response :not_found
+  end
+
+  test "#add_framework_use_case adds a ProjectFrameworkUseCase to the database" do
+    @user.add_role :admin
+    project_framework = @base_project.add_framework(@framework.id)
+    assert_difference("ProjectFrameworkUseCase.count") {
+      post "/project/#{ @base_project.id }/framework/#{ @framework.id }/use_case/#{ @use_case.name }", headers: { "Authorization": "Bearer #{ @token }" }
+    }
+  end
+
+  test "#add_framework_use_case adds a use_case to requested project_framework use_cases" do
+    @user.add_role :admin
+    project_framework = @base_project.add_framework(@framework.id)
+    assert_difference("project_framework.use_cases.count") {
+      post "/project/#{ @base_project.id }/framework/#{ @framework.id }/use_case/#{ @use_case.name }", headers: { "Authorization": "Bearer #{ @token }" }
+    }
+  end
+
+  test "#add_framework_use_case adds specified use_case to requested projects_framework" do
+    @user.add_role :admin
+    project_framework = @base_project.add_framework(@framework.id)
+    post "/project/#{ @base_project.id }/framework/#{ @framework.id }/use_case/#{ @use_case.name }", headers: { "Authorization": "Bearer #{ @token }" }
+    use_case_present = false
+    project_framework.use_cases.each do | use_case |
+      if use_case.id == @use_case.id
+        use_case_present = true
+      end
+    end
+    assert use_case_present
   end
 
   # ###########
