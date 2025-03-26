@@ -11,7 +11,7 @@ class ProjectSerializerTest < ActiveSupport::TestCase
       live_url: "https://paulbodner.com",
       role: "Developer"
     )
-    
+
     @project.image.attach(
       io: File.open(Rails.root.join("test", "fixtures", "files", "default-avatar.jpg")),
       filename: "default-avatar.png",
