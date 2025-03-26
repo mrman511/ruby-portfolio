@@ -7,9 +7,11 @@ class ProjectSerializerTest < ActiveSupport::TestCase
     @project = Project.create!(
       title: "Test Project",
       description: "A description for the test project.",
-      github_url: "https://github.com/example/test-project",
+      github_url: "https://github.com/mrman511",
+      live_url: "https://paulbodner.com",
       role: "Developer"
     )
+    
     @project.image.attach(
       io: File.open(Rails.root.join("test", "fixtures", "files", "default-avatar.jpg")),
       filename: "default-avatar.png",
@@ -30,6 +32,7 @@ class ProjectSerializerTest < ActiveSupport::TestCase
     assert_equal @project.description, @data[:description]
     assert_equal @project.github_url, @data[:github_url]
     assert_equal @project.role, @data[:role]
+    assert_equal @project.live_url, @data[:live_url]
   end
 
   test "#as_json should include image_url if image is attached" do
