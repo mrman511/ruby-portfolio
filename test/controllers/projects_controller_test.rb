@@ -25,7 +25,7 @@ class ProjectsControllerTest < ActionDispatch::IntegrationTest
       title: "Pilper",
       description: "Lighthouse labs bootcamp final project we could have done better",
       github_url: "https://github.com/mrman511",
-      live_url: "pillpopper.com",
+      live_url: "pipopper.com",
       role: "Creator"
     }
     @user = User.create({
