@@ -1,7 +1,7 @@
 class ProjectSerializer < ActiveModel::Serializer
   attributes :id, :title, :description, :github_url, :role, :image_url, :live_url
 
-  has_many :frameworks
+  has_many :project_frameworks, key: :frameworks
   has_many :languages
 
   def image_url
