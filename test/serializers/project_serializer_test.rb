@@ -41,7 +41,7 @@ class ProjectSerializerTest < ActiveSupport::TestCase
 
   test "#as_json should include frameworks" do
     assert_equal 1, @data[:frameworks].length
-    assert_equal "Rails", @data[:frameworks].first["name"]
+    assert_equal "Rails", @data[:frameworks].first[:name]
   end
 
   test "#as_json should include languages" do
